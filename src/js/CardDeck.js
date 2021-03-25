@@ -1,4 +1,3 @@
-import { sampleCards } from './sampleCards';
 import { requestService } from './RequestService';
 
 export const CardPriority = {
@@ -12,26 +11,22 @@ const CardProbability = {
     [CardPriority.FRESH]: 1000,
     [CardPriority.HIGH]: 3,
     [CardPriority.MEDIUM]: 2,
-    [CardPriority.LOW]: 1,
+    [CardPriority.LOW]: 1
 };
 
 
 class CardDeck {
-    cards = [];
-
-    constructor(cards = []) {
-        this.cards = cards;
-    }
+    _cards = [];
 
     _getCard(id) {
-        return this.cards.find(card => card.id === id);
+        return this._cards.find(card => card.id === id);
     }
 
     _getPriority() {
         let prevChance = 0;
         return Object.keys(CardProbability).reduce((result, key) => {
             const chance = Math.random() * CardProbability[key];
-            if (chance <= prevChance || !this.cards.find(card => card.priority === key)) {
+            if (chance <= prevChance || !this._cards.find(card => card.priority === key)) {
                 return result;
             }
             prevChance = chance;
@@ -39,48 +34,82 @@ class CardDeck {
         }, '');
     }
 
-    getActiveCardId(onSuccess, onError) {
-        const curPriority = this._getPriority();
-        const activeCard = this.cards
-            .filter(card => card.priority === curPriority)
-            .reduce((r, e) => (r && r.lastSeenAt < e.lastSeenAt) ? r : e, null);
-        activeCard.lastSeenAt = Date.now();
-        onSuccess(activeCard.id);
+    init() {
+        return requestService.getAll()
+            .then(resp => {
+                this._cards = resp;
+            });
     }
 
-    getCards(onSuccess, onError) {
-        requestService.getAll().then(resp => onSuccess(resp));
+    getActiveCard() {
+        return new Promise((resolve, reject) => {
+            const curPriority = this._getPriority();
+            const activeCard = this._cards
+                .filter(card => card.priority === curPriority)
+                .reduce((r, e) => (r && r.lastSeenAt < e.lastSeenAt) ? r : e, null);
+            if (!activeCard) {
+                reject('no active card');
+                return;
+            }
+            activeCard.lastSeenAt = Date.now();
+            resolve(activeCard);
+        });
     }
 
-    deleteCard(id, onSuccess, onError) {
-        requestService.delete(id).then(resp => onSuccess(resp));
+    shuffleCards() {
+        // randomize lastSeenAt from cards.length numbers
     }
 
-    rankCard(id, priority, onSuccess, onError) {
-        const curCard = this._getCard(id);
-        if (!curCard) {
-            onError();
-            return;
-        }
-        const resCard = {
-            ...curCard,
-            priority
-        };
-        requestService.update(resCard).then(resp => onSuccess(resp));
+    rankCard(id, priority) {
+        return new Promise((resolve, reject) => {
+            const curCard = this._getCard(id);
+            if (!curCard) {
+                reject('no card for ranking');
+                return;
+            }
+            const resCard = {
+                ...curCard,
+                priority
+            };
+            requestService.update(resCard).then(resp => resolve(resp));
 
-        // set lastSeen so that card comes first IF priority is set higher (maybe to 0?)
+            // set lastSeen so that card comes first IF priority is set higher (maybe to 0?)
+        });
     }
 
-    addCard(translations, examples, onSuccess, onError) {
+    deleteCard(id) {
+        return requestService.delete(id);
+    }
+
+    addCard(translations = {}, example) {
         requestService.add({
             translations,
-            examples,
+            example,
             priority: CardPriority.FRESH,
             lastSeenAt: Date.now()
-        }).then(resp => {
-            this.cards.push(resp);
-            onSuccess(this.cards);
-        });
+        })
+            .then(resp => {
+                this._cards.push(resp);
+            })
+    }
+
+    updateCard(id, translations = {}, example) {
+        const curCard = this._getCard(id);
+        if (!curCard) {
+            return Promise.reject('no card to update');
+        }
+        requestService.update({
+            ...curCard,
+            translations: {
+                ...curCard.translations,
+                translations
+            },
+            example
+        })
+            .then(resp => {
+                curCard.translations = resp.translations;
+                curCard.example = resp.example;
+            });
     }
 }
 
