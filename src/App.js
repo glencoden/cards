@@ -1,6 +1,5 @@
 import { useReducer, useEffect } from 'react';
 import { cardDeck } from './js/CardDeck';
-import { requestService } from './js/RequestService';
 
 
 // adapter
@@ -37,11 +36,8 @@ function App() {
     const [ state, dispatch ] = useReducer(reducer, initState);
 
     useEffect(() => {
-        requestService.getUser('ponkel')
-            .then(user => {
-                dispatch({ type: ActionTypes.SET_USER, user });
-                return cardDeck.init();
-            })
+        cardDeck.init('meyer')
+            .then(user => dispatch({ type: ActionTypes.SET_USER, user }))
             .then(() => cardDeck.getActiveCard())
             .then(card => dispatch({ card, type: ActionTypes.SET_CARD }))
             .catch(err => console.error(err));
@@ -49,16 +45,55 @@ function App() {
 
     return (
         <div className="App">
-            <p style={{ whiteSpace: 'pre-line' }}>{JSON.stringify(state, null, 4)}</p>
+            {state.card ? (
+                <div>
+                    {state.cardTurned ? (
+                        <p>{JSON.stringify(state.card.translations.to)}</p>
+                    ) : (
+                        <p>{JSON.stringify(state.card.translations.from)}</p>
+                    )}
+                </div>
+            ) : (
+                <p>no active card</p>
+            )}
+
             <button
                 onClick={() => dispatch({ type: ActionTypes.TURN_CARD })}
             >
                 turn card
             </button>
             <button
-                onClick={() => dispatch({ type: ActionTypes.TURN_CARD })}
+                onClick={() => {
+                    cardDeck.getActiveCard()
+                        .then(card => dispatch({ card, type: ActionTypes.SET_CARD }))
+                        .catch(err => console.error(err));
+                }}
             >
                 next card
+            </button>
+            <button
+                onClick={() => {
+                    cardDeck.addCard({ from: 'Deutsch', to: 'Chinese' }, 'glen was here')
+                        .then(() => {
+                            cardDeck.getActiveCard()
+                                .then(card => dispatch({ card, type: ActionTypes.SET_CARD }))
+                                .catch(err => console.error(err));
+                        });
+                }}
+            >
+                add card
+            </button>
+            <button
+                onClick={() => {
+                    cardDeck.updateCard(state.card?.id, { from: 'Deutsch', to: 'Italiano' }, 'glen was here')
+                        .then(() => {
+                            cardDeck.getActiveCard()
+                                .then(card => dispatch({ card, type: ActionTypes.SET_CARD }))
+                                .catch(err => console.error(err));
+                        });
+                }}
+            >
+                update card
             </button>
         </div>
     );

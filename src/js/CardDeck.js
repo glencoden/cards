@@ -17,6 +17,7 @@ const CardProbability = {
 
 class CardDeck {
     _cards = [];
+    _user = '';
 
     _getCard(id) {
         return this._cards.find(card => card.id === id);
@@ -34,10 +35,15 @@ class CardDeck {
         }, '');
     }
 
-    init() {
-        return requestService.getAll()
+    init(username) {
+        return requestService.getUser(username)
+            .then(user => {
+                this._user = user;
+                return requestService.getAll()
+            })
             .then(resp => {
                 this._cards = resp;
+                return this._user;
             });
     }
 
@@ -82,7 +88,7 @@ class CardDeck {
     }
 
     addCard(translations = {}, example) {
-        requestService.add({
+        return requestService.add({
             translations,
             example,
             priority: CardPriority.FRESH,
@@ -98,11 +104,11 @@ class CardDeck {
         if (!curCard) {
             return Promise.reject('no card to update');
         }
-        requestService.update({
+        return requestService.update({
             ...curCard,
             translations: {
                 ...curCard.translations,
-                translations
+                ...translations
             },
             example
         })
