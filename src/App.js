@@ -1,6 +1,6 @@
 import { useReducer, useState, useCallback, useEffect } from 'react';
 import { cardDeck, CardPriority } from './js/CardDeck';
-import { makeStyles, Card, CardContent, CardActions, Typography, Button, Fab } from '@material-ui/core';
+import { makeStyles, Card, CardContent, CardActions, Typography, Button, Fab, TextField } from '@material-ui/core';
 import { SpeedDial, SpeedDialIcon, SpeedDialAction } from '@material-ui/lab';
 
 
@@ -45,22 +45,27 @@ const useStyles = makeStyles(theme => ({
     card: {
         width: '330px',
         justifySelf: 'center',
-        alignSelf: 'center'
+        alignSelf: 'center',
+        overflow: 'visible'
     },
     cardContent: {
         position: 'relative',
-        height: '200px',
+        height: '190px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center'
     },
-    typography: {
-        fontSize: '20px'
+    translations: {
+        fontSize: '24px'
+    },
+    example: {
+        fontSize: '14px',
+        marginTop: '10px'
     },
     cardActions: {
         position: 'absolute',
-        bottom: '10px',
+        bottom: '-72px',
         display: 'flex',
         justifyContent: 'center'
     },
@@ -83,6 +88,17 @@ const useStyles = makeStyles(theme => ({
         position: 'fixed',
         right: '28px',
         bottom: '28px'
+    },
+    editor: {
+        padding: '20px',
+        alignSelf: 'center'
+    },
+    editorActions: {
+        width: '210px',
+        justifySelf: 'center',
+        alignSelf: 'center',
+        display: 'flex',
+        justifyContent: 'space-between'
     }
 }));
 
@@ -92,6 +108,7 @@ function App() {
 
     const [ speedDialOpen, setSpeedDialOpen ] = useState(false);
     const [ stageDelete, setStageDelete ] = useState(false);
+    const [ cardForEdit, setCardForEdit ] = useState(null);
 
     const getActiveCard = useCallback(
         () => {
@@ -106,7 +123,8 @@ function App() {
     );
 
     const rankCard = useCallback(
-        (id, priority) => {
+        (event, id, priority) => {
+            event.stopPropagation();
             cardDeck.rankCard(id, priority)
                 .then(getActiveCard);
         },
@@ -127,15 +145,17 @@ function App() {
         cardActions = (
             <>
                 <Button
+                    key="clear"
                     variant="contained"
-                    onClick={e => {
-                        e.stopPropagation();
+                    onClick={event => {
+                        event.stopPropagation();
                         setStageDelete(false);
                     }}
                 >
                     <span className="material-icons">clear</span>
                 </Button>
                 <Button
+                    key="delete"
                     variant="contained"
                     color="secondary"
                     onClick={e => {
@@ -154,15 +174,98 @@ function App() {
     } else if (state.cardTurned) {
         cardActions = (
             <>
-                <Fab className={`${classes.rankButton} ${classes.rbFresh}`} size="small" onClick={() => rankCard(state.card.id, CardPriority.FRESH)}>
+                <Fab key="rb-fresh" className={`${classes.rankButton} ${classes.rbFresh}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.FRESH)}>
                     <span className="material-icons">sync</span>
                 </Fab>
-                <Fab className={`${classes.rankButton} ${classes.rbHigh}`} size="small" onClick={() => rankCard(state.card.id, CardPriority.HIGH)} />
-                <Fab className={`${classes.rankButton} ${classes.rbMedium}`} size="small" onClick={() => rankCard(state.card.id, CardPriority.MEDIUM)} />
-                <Fab className={`${classes.rankButton} ${classes.rbLow}`} size="small" onClick={() => rankCard(state.card.id, CardPriority.LOW)} />
+                <Fab key="rb-high" className={`${classes.rankButton} ${classes.rbHigh}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.HIGH)} />
+                <Fab key="rb-medium" className={`${classes.rankButton} ${classes.rbMedium}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.MEDIUM)} />
+                <Fab key="rb-low" className={`${classes.rankButton} ${classes.rbLow}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.LOW)} />
             </>
         );
     }
+
+    if (cardForEdit) {
+        return (
+            <div className={classes.root}>
+                <div className={classes.editor}>
+                    {Object.keys(cardForEdit.translations.from).map((entry, index) => (
+                        <TextField
+                            key={index}
+                            id={entry}
+                            label={entry}
+                            margin="normal"
+                            value={cardForEdit.translations.from[entry]}
+                            onChange={event => setCardForEdit(prevState => ({
+                                ...prevState,
+                                translations: {
+                                    ...prevState.translations,
+                                    from: {
+                                        ...prevState.translations.from,
+                                        [entry]: event.target.value
+                                    }
+                                }
+                            }))}
+                            fullWidth
+                        />
+                    ))}
+                    {Object.keys(cardForEdit.translations.to).map((entry, index) => (
+                        <TextField
+                            key={index}
+                            id={entry}
+                            label={entry}
+                            margin="normal"
+                            value={cardForEdit.translations.to[entry]}
+                            onChange={event => setCardForEdit(prevState => ({
+                                ...prevState,
+                                translations: {
+                                    ...prevState.translations,
+                                    to: {
+                                        ...prevState.translations.to,
+                                        [entry]: event.target.value
+                                    }
+                                }
+                            }))}
+                            fullWidth
+                        />
+                    ))}
+                    <TextField
+                        id="example"
+                        label="example"
+                        margin="normal"
+                        value={cardForEdit.example}
+                        onChange={event => setCardForEdit(prevState => ({
+                            ...prevState,
+                            example: event.target.value
+                        }))}
+                        fullWidth
+                    />
+                </div>
+                <div className={classes.editorActions}>
+                    <Button
+                        variant="contained"
+                        onClick={() => setCardForEdit(null)}
+                    >
+                        Abbrechen
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => {
+                            cardDeck.updateCard(cardForEdit)
+                                .then(() => {
+                                    getActiveCard();
+                                    setCardForEdit(null);
+                                })
+                        }}
+                    >
+                        Fertig
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    console.log('APP', state.card);// TODO remove dev code
 
     return (
         <div className={classes.root}>
@@ -171,22 +274,33 @@ function App() {
                 onClick={() => {
                     if (!state.cardTurned) {
                         dispatch({ type: ActionTypes.TURN_CARD });
-                        return;
                     }
-                    getActiveCard();
                 }}
             >
                 {state.card && (
                     <CardContent className={classes.cardContent}>
-                        {(state.cardTurned ? state.card.translations.to : state.card.translations.from).map((entry, index) => (
+                        {Object.values(state.cardTurned ? state.card.translations.to : state.card.translations.from).map((entry, index) => {
+                            if (!entry) {
+                                return null;
+                            }
+                            return (
+                                <Typography
+                                    key={index}
+                                    className={classes.translations}
+                                    variant="subtitle2"
+                                >
+                                    {entry}
+                                </Typography>
+                            );
+                        })}
+                        {state.cardTurned && state.card.example && (
                             <Typography
-                                key={index}
-                                className={classes.typography}
-                                variant="subtitle2"
+                                className={classes.example}
+                                variant="caption"
                             >
-                                {entry}
+                                {state.card.example}
                             </Typography>
-                        ))}
+                        )}
                         <CardActions className={classes.cardActions}>
                             {cardActions}
                         </CardActions>
@@ -208,12 +322,13 @@ function App() {
                     icon={<span className="material-icons">add</span>}
                     tooltipTitle="Neu"
                     onClick={() => {
-                        cardDeck.addCard({ from: [ 'Deutsch' ], to: [ 'Chinese', '汉语' ] }, 'glen was here')
-                            .then(() => {
-                                cardDeck.getActiveCard()
-                                    .then(card => dispatch({ card, type: ActionTypes.SET_CARD }))
-                                    .catch(err => console.error(err));
-                            });
+                        setCardForEdit({
+                            translations: {
+                                from: state.user.from.reduce((r, e) => ({ ...r, [e]: '' }), {}),
+                                to: state.user.to.reduce((r, e) => ({ ...r, [e]: '' }), {})
+                            },
+                            example: ''
+                        });
                         setSpeedDialOpen(false);
                     }}
                 />
@@ -221,6 +336,9 @@ function App() {
                     icon={<span className="material-icons">edit</span>}
                     tooltipTitle="Bearbeiten"
                     onClick={() => {
+                        if (state.card) {
+                            setCardForEdit(state.card);
+                        }
                         setSpeedDialOpen(false);
                     }}
                 />
@@ -228,24 +346,13 @@ function App() {
                     icon={<span className="material-icons">delete</span>}
                     tooltipTitle="Löschen"
                     onClick={() => {
-                        setStageDelete(true);
+                        if (state.card) {
+                            setStageDelete(true);
+                        }
                         setSpeedDialOpen(false);
                     }}
                 />
             </SpeedDial>
-
-            {/*<button
-                onClick={() => {
-                    cardDeck.updateCard(state.card?.id, { from: 'Deutsch', to: 'Italiano' }, 'glen was here')
-                        .then(() => {
-                            cardDeck.getActiveCard()
-                                .then(card => dispatch({ card, type: ActionTypes.SET_CARD }))
-                                .catch(err => console.error(err));
-                        });
-                }}
-            >
-                update card
-            </button>*/}
         </div>
     );
 }

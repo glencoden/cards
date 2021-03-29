@@ -37,8 +37,8 @@ class CardDeck {
 
     init(username) {
         return requestService.getUser(username)
-            .then(user => {
-                this._user = user;
+            .then(resp => {
+                this._user = resp.user;
                 return requestService.getAll()
             })
             .then(resp => {
@@ -67,20 +67,17 @@ class CardDeck {
     }
 
     rankCard(id, priority) {
-        return new Promise((resolve, reject) => {
-            const curCard = this._getCard(id);
-            if (!curCard) {
-                reject('no card for ranking');
-                return;
-            }
-            const resCard = {
-                ...curCard,
-                priority
-            };
-            requestService.update(resCard).then(resp => resolve(resp));
+        const curCard = this._getCard(id);
+        const resCard = {
+            ...curCard,
+            priority
+        };
+        return requestService.update(resCard)
+            .then(resp => {
+                curCard.priority = resp.priority;
+            });
 
-            // set lastSeen so that card comes first IF priority is set higher (maybe to lastSeen = 0?)
-        });
+        // set lastSeen so that card comes first IF priority is set higher (maybe to lastSeen = 0?)
     }
 
     deleteCard(id) {
@@ -90,20 +87,19 @@ class CardDeck {
             });
     }
 
-    addCard(translations = {}, example) {
-        return requestService.add({
-            translations,
-            example,
-            priority: CardPriority.FRESH,
-            lastSeenAt: Date.now()
-        })
-            .then(resp => {
-                this._cards.push(resp);
+    updateCard(card) {
+        if (!card.id) {
+            return requestService.add({
+                translations: card.translations,
+                example: card.example,
+                priority: CardPriority.FRESH,
+                lastSeenAt: Date.now()
             })
-    }
-
-    updateCard(id, translations = {}, example) {
-        const curCard = this._getCard(id);
+                .then(resp => {
+                    this._cards.push(resp);
+                });
+        }
+        const curCard = this._getCard(card.id);
         if (!curCard) {
             return Promise.reject('no card to update');
         }
@@ -111,9 +107,9 @@ class CardDeck {
             ...curCard,
             translations: {
                 ...curCard.translations,
-                ...translations
+                ...card.translations
             },
-            example
+            example: card.example
         })
             .then(resp => {
                 curCard.translations = resp.translations;
