@@ -1,4 +1,5 @@
-const rootUrl = 'http://localhost';
+// const rootUrl = 'http://localhost';
+const rootUrl = 'http://192.168.1.3:80';
 const baseUrl = `${rootUrl}/cards`;
 
 

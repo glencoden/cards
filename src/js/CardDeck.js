@@ -79,12 +79,15 @@ class CardDeck {
             };
             requestService.update(resCard).then(resp => resolve(resp));
 
-            // set lastSeen so that card comes first IF priority is set higher (maybe to 0?)
+            // set lastSeen so that card comes first IF priority is set higher (maybe to lastSeen = 0?)
         });
     }
 
     deleteCard(id) {
-        return requestService.delete(id);
+        return requestService.delete(id)
+            .then(resp => {
+                this._cards.splice(this._cards.indexOf(this._cards.find(card => card.id === parseInt(resp.id, 10))), 1);
+            });
     }
 
     addCard(translations = {}, example) {
