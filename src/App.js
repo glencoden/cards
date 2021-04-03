@@ -228,16 +228,11 @@ function App() {
                             label={entry}
                             margin="normal"
                             value={cardForEdit.translations.from[entry]}
-                            onChange={event => setCardForEdit(prevState => ({
-                                ...prevState,
-                                translations: {
-                                    ...prevState.translations,
-                                    from: {
-                                        ...prevState.translations.from,
-                                        [entry]: event.target.value
-                                    }
-                                }
-                            }))}
+                            onChange={event => setCardForEdit(prevState => {
+                                const curState = { ...prevState };
+                                curState.translations.from[entry] = event.target.value;
+                                return curState;
+                            })}
                             fullWidth
                         />
                     ))}
@@ -248,16 +243,11 @@ function App() {
                             label={entry}
                             margin="normal"
                             value={cardForEdit.translations.to[entry]}
-                            onChange={event => setCardForEdit(prevState => ({
-                                ...prevState,
-                                translations: {
-                                    ...prevState.translations,
-                                    to: {
-                                        ...prevState.translations.to,
-                                        [entry]: event.target.value
-                                    }
-                                }
-                            }))}
+                            onChange={event => setCardForEdit(prevState => {
+                                const curState = { ...prevState };
+                                curState.translations.to[entry] = event.target.value;
+                                return curState;
+                            })}
                             fullWidth
                         />
                     ))}
