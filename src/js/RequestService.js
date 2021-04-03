@@ -1,5 +1,5 @@
-// const rootUrl = 'http://localhost';
-const rootUrl = 'http://192.168.1.3:80';
+// const rootUrl = 'http://192.168.1.3:80';
+const rootUrl = 'https://wolke.glencoden.de';
 const baseUrl = `${rootUrl}/cards`;
 
 
@@ -23,8 +23,8 @@ class RequestService {
         return this._get(`${baseUrl}/user/${name}`);
     }
 
-    getAll() {
-        return this._get(`${baseUrl}/all`);
+    getAll(username) {
+        return this._get(`${baseUrl}/all/${username}`);
     }
 
     delete(id) {

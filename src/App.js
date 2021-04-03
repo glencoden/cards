@@ -1,4 +1,4 @@
-import { useReducer, useState, useCallback, useEffect } from 'react';
+import { useReducer, useState, useCallback } from 'react';
 import { cardDeck, CardPriority } from './js/CardDeck';
 import { makeStyles, Card, CardContent, CardActions, Typography, Button, Fab, TextField } from '@material-ui/core';
 import { SpeedDial, SpeedDialIcon, SpeedDialAction } from '@material-ui/lab';
@@ -91,6 +91,16 @@ const useStyles = makeStyles(theme => ({
         right: '28px',
         bottom: '28px'
     },
+    login: {
+        width: '200px',
+        height: '150px',
+        justifySelf: 'center',
+        alignSelf: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
     editor: {
         padding: '20px',
         alignSelf: 'center'
@@ -108,6 +118,7 @@ function App() {
     const classes = useStyles();
     const [ state, dispatch ] = useReducer(reducer, initState);
 
+    const [ loginInput, setLoginInput ] = useState('');
     const [ speedDialOpen, setSpeedDialOpen ] = useState(false);
     const [ stageDelete, setStageDelete ] = useState(false);
     const [ cardForEdit, setCardForEdit ] = useState(null);
@@ -132,14 +143,6 @@ function App() {
         },
         [ getActiveCard ]
     );
-
-    useEffect(() => {
-        cardDeck.init('meyer')
-            .then(user => dispatch({ type: ActionTypes.SET_USER, user }))
-            .then(() => cardDeck.getActiveCard())
-            .then(card => dispatch({ card, type: ActionTypes.SET_CARD }))
-            .catch(err => console.log(err));
-    }, [ dispatch ]);
 
     let cardActions = null;
 
@@ -181,6 +184,36 @@ function App() {
                 <Fab key="rb-medium" className={`${classes.rankButton} ${classes.rbMedium}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.MEDIUM)} />
                 <Fab key="rb-low" className={`${classes.rankButton} ${classes.rbLow}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.LOW)} />
             </>
+        );
+    }
+
+    if (!state.user) {
+        return (
+            <div className={classes.root}>
+                <div className={classes.login}>
+                    <TextField
+                        id="username"
+                        label="Name"
+                        margin="normal"
+                        value={loginInput}
+                        onChange={event => setLoginInput(event.target.value)}
+                        fullWidth
+                    />
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => {
+                            cardDeck.init(loginInput)
+                                .then(user => dispatch({ type: ActionTypes.SET_USER, user }))
+                                .then(() => cardDeck.getActiveCard())
+                                .then(card => dispatch({ card, type: ActionTypes.SET_CARD }))
+                                .catch(err => console.log(err));
+                        }}
+                    >
+                        Fertig
+                    </Button>
+                </div>
+            </div>
         );
     }
 

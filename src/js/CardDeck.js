@@ -38,8 +38,11 @@ class CardDeck {
     init(username) {
         return requestService.getUser(username)
             .then(resp => {
+                if (!resp.user) {
+                    throw new Error('wrong user name');
+                }
                 this._user = resp.user;
-                return requestService.getAll()
+                return requestService.getAll(this._user.name)
             })
             .then(resp => {
                 this._cards = resp;
@@ -93,6 +96,7 @@ class CardDeck {
     updateCard(card) {
         if (!card.id) {
             return requestService.add({
+                user: this._user.name,
                 translations: card.translations,
                 example: card.example,
                 priority: CardPriority.FRESH,
