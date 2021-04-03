@@ -52,7 +52,7 @@ class CardDeck {
             const curPriority = this._getPriority();
             const activeCard = this._cards
                 .filter(card => card.priority === curPriority)
-                .reduce((r, e) => (r && r.lastSeenAt < e.lastSeenAt) ? r : e, null);
+                .reduce((r, e) => (r && (r.lastSeenAt < e.lastSeenAt)) ? r : e, null);
             if (!activeCard) {
                 reject('no active card');
                 return;
@@ -72,12 +72,15 @@ class CardDeck {
             ...curCard,
             priority
         };
+        const priorities = Object.values(CardPriority);
+        if (priorities.indexOf(resCard.priority) < priorities.indexOf(curCard.priority)) {
+            resCard.lastSeenAt = 0;
+        }
         return requestService.update(resCard)
             .then(resp => {
                 curCard.priority = resp.priority;
+                curCard.lastSeenAt = resp.lastSeenAt;
             });
-
-        // set lastSeen so that card comes first IF priority is set higher (maybe to lastSeen = 0?)
     }
 
     deleteCard(id) {
