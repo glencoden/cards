@@ -25,7 +25,7 @@ const reducer = (state, action) => {
         case ActionTypes.SET_CARD:
             return { ...state, card: action.card, cardTurned: false };
         case ActionTypes.TURN_CARD:
-            return { ...state, cardTurned: true };
+            return { ...state, cardTurned: !state.cardTurned };
         default:
             return { ...state };
     }
@@ -57,10 +57,12 @@ const useStyles = makeStyles(theme => ({
         alignItems: 'center'
     },
     translations: {
-        fontSize: '24px'
+        fontSize: '24px',
+        textAlign: 'center'
     },
     example: {
         fontSize: '14px',
+        textAlign: 'center',
         marginTop: '10px'
     },
     cardActions: {
@@ -70,19 +72,19 @@ const useStyles = makeStyles(theme => ({
         justifyContent: 'center'
     },
     rankButton: {
-        margin: '0 12px'
+        margin: '0 16px'
     },
     rbFresh: {
-        backgroundColor: theme.palette.background.paper
-    },
-    rbHigh: {
         backgroundColor: theme.palette.error.dark
     },
+    rbHigh: {
+        backgroundColor: theme.palette.warning.main
+    },
     rbMedium: {
-        backgroundColor: theme.palette.warning.light
+        backgroundColor: theme.palette.success.main
     },
     rbLow: {
-        backgroundColor: theme.palette.success.dark
+        backgroundColor: theme.palette.info.light
     },
     speedDial: {
         position: 'fixed',
@@ -174,9 +176,7 @@ function App() {
     } else if (state.cardTurned) {
         cardActions = (
             <>
-                <Fab key="rb-fresh" className={`${classes.rankButton} ${classes.rbFresh}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.FRESH)}>
-                    <span className="material-icons">sync</span>
-                </Fab>
+                <Fab key="rb-fresh" className={`${classes.rankButton} ${classes.rbFresh}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.FRESH)} />
                 <Fab key="rb-high" className={`${classes.rankButton} ${classes.rbHigh}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.HIGH)} />
                 <Fab key="rb-medium" className={`${classes.rankButton} ${classes.rbMedium}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.MEDIUM)} />
                 <Fab key="rb-low" className={`${classes.rankButton} ${classes.rbLow}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.LOW)} />
@@ -230,7 +230,7 @@ function App() {
                     ))}
                     <TextField
                         id="example"
-                        label="example"
+                        label="Beispiel"
                         margin="normal"
                         value={cardForEdit.example}
                         onChange={event => setCardForEdit(prevState => ({
@@ -271,11 +271,7 @@ function App() {
         <div className={classes.root}>
             <Card
                 className={classes.card}
-                onClick={() => {
-                    if (!state.cardTurned) {
-                        dispatch({ type: ActionTypes.TURN_CARD });
-                    }
-                }}
+                onClick={() => dispatch({ type: ActionTypes.TURN_CARD })}
             >
                 {state.card && (
                     <CardContent className={classes.cardContent}>
