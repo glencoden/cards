@@ -223,7 +223,7 @@ function App() {
                 <div className={classes.editor}>
                     {Object.keys(cardForEdit.translations.from).map((entry, index) => (
                         <TextField
-                            key={index}
+                            key={entry + index}
                             id={entry}
                             label={entry}
                             margin="normal"
@@ -243,7 +243,7 @@ function App() {
                     ))}
                     {Object.keys(cardForEdit.translations.to).map((entry, index) => (
                         <TextField
-                            key={index}
+                            key={entry + index}
                             id={entry}
                             label={entry}
                             margin="normal"
