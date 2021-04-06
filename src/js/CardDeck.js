@@ -8,7 +8,7 @@ export const CardPriority = {
 };
 
 const CardProbability = {
-    [CardPriority.FRESH]: 1000,
+    [CardPriority.FRESH]: 4,
     [CardPriority.HIGH]: 3,
     [CardPriority.MEDIUM]: 2,
     [CardPriority.LOW]: 1
@@ -17,7 +17,7 @@ const CardProbability = {
 
 class CardDeck {
     _cards = [];
-    _user = '';
+    _user = {};
 
     _getCard(id) {
         return this._cards.find(card => card.id === id);
@@ -104,6 +104,7 @@ class CardDeck {
             })
                 .then(resp => {
                     this._cards.push(resp);
+                    return resp;
                 });
         }
         const curCard = this._getCard(card.id);
@@ -121,6 +122,7 @@ class CardDeck {
             .then(resp => {
                 curCard.translations = resp.translations;
                 curCard.example = resp.example;
+                return curCard;
             });
     }
 }
