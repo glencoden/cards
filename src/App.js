@@ -353,7 +353,7 @@ function App() {
             </Card>
 
             <div className={classes.showOrderSwitch}>
-                <Typography variant="caption" color="textSecondary">A</Typography>
+                <Typography variant="caption" color="textSecondary">{state.user?.from[0]}</Typography>
                 <IconButton
                     onClick={() => setShowOrder(prevState => {
                         const values = Object.values(CardShowOrder);
@@ -364,7 +364,7 @@ function App() {
                     {showOrder === CardShowOrder.B_TO_A && <span className="material-icons" style={{ transform: 'rotate(180deg)' }}>arrow_right_alt</span>}
                     {showOrder === CardShowOrder.RANDOM && <span className="material-icons">swap_horiz</span>}
                 </IconButton>
-                <Typography variant="caption" color="textSecondary">B</Typography>
+                <Typography variant="caption" color="textSecondary">{state.user?.to[0]}</Typography>
             </div>
 
             <SpeedDial
