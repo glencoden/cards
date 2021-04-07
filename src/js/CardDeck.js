@@ -8,9 +8,9 @@ export const CardPriority = {
 };
 
 const CardProbability = {
-    [CardPriority.FRESH]: 4,
-    [CardPriority.HIGH]: 3,
-    [CardPriority.MEDIUM]: 2,
+    [CardPriority.FRESH]: 6,
+    [CardPriority.HIGH]: 4,
+    [CardPriority.MEDIUM]: 3,
     [CardPriority.LOW]: 1
 };
 
@@ -41,10 +41,12 @@ class CardDeck {
                 if (!resp.user) {
                     throw new Error('wrong user name');
                 }
+                console.log('card deck init user', resp.user); // TODO remove dev code
                 this._user = resp.user;
                 return requestService.getAll(this._user.name)
             })
             .then(resp => {
+                console.log('card deck init cards', resp); // TODO remove dev code
                 this._cards = resp;
                 return this._user;
             });
@@ -63,6 +65,10 @@ class CardDeck {
             activeCard.lastSeenAt = Date.now();
             resolve(activeCard);
         });
+    }
+
+    getNumCards() {
+        return this._cards.length;
     }
 
     shuffleCards() {

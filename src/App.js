@@ -75,16 +75,21 @@ const useStyles = makeStyles(theme => ({
         margin: '0 16px'
     },
     rbFresh: {
-        backgroundColor: theme.palette.error.dark
+        backgroundColor: `${theme.palette.error.dark} !important`
     },
     rbHigh: {
-        backgroundColor: theme.palette.warning.main
+        backgroundColor: `${theme.palette.warning.main} !important`
     },
     rbMedium: {
-        backgroundColor: theme.palette.success.main
+        backgroundColor: `${theme.palette.success.main} !important`
     },
     rbLow: {
-        backgroundColor: theme.palette.info.light
+        backgroundColor: `${theme.palette.info.light} !important`
+    },
+    numCards: {
+        position: 'fixed',
+        top: '28px',
+        left: '28px'
     },
     showOrderSwitch: {
         alignSelf: 'center',
@@ -310,10 +315,12 @@ function App() {
         );
     }
 
-    console.log('APP', state.card);// TODO remove dev code
+    console.log('app active card', state.card);// TODO remove dev code
 
     return (
         <div className={classes.root}>
+            <Typography className={classes.numCards} variant="caption" color="textSecondary">{`${cardDeck.getNumCards()} cards`}</Typography>
+
             <Card
                 className={classes.card}
                 onClick={() => {
