@@ -16,24 +16,8 @@ const CardProbability = {
 
 
 class CardDeck {
-    _cards = [];
     _user = {};
-
-    _getCard(id) {
-        return this._cards.find(card => card.id === id);
-    }
-
-    _getPriority() {
-        let prevChance = 0;
-        return Object.keys(CardProbability).reduce((result, key) => {
-            const chance = Math.random() * CardProbability[key];
-            if (chance <= prevChance || !this._cards.find(card => card.priority === key)) {
-                return result;
-            }
-            prevChance = chance;
-            return key;
-        }, '');
-    }
+    _cards = [];
 
     init(username) {
         return requestService.getUser(username)
@@ -41,20 +25,32 @@ class CardDeck {
                 if (!resp.user) {
                     throw new Error('wrong user name');
                 }
-                console.log('card deck init user', resp.user); // TODO remove dev code
-                this._user = resp.user;
+                this._setUser(resp.user);
                 return requestService.getAll(this._user.name)
             })
             .then(resp => {
-                console.log('card deck init cards', resp); // TODO remove dev code
-                this._cards = resp;
+                this._setCards(resp);
                 return this._user;
             });
     }
 
     getActiveCard() {
         return new Promise((resolve, reject) => {
-            const curPriority = this._getPriority();
+            // new approach
+            const pr = this._cards.reduce((r, e, i) => [ ...r, `${Math.round(CardProbability[e.priority] * (this._cards.length - i) * Math.random())} ${e.lastSeenAt}` ], []);
+            console.log(pr);// TODO remove dev code
+
+            // get priority
+            let prevChance = 0;
+            const curPriority = Object.keys(CardProbability).reduce((result, key) => {
+                const chance = Math.random() * CardProbability[key];
+                if (chance <= prevChance || !this._cards.find(card => card.priority === key)) {
+                    return result;
+                }
+                prevChance = chance;
+                return key;
+            }, '');
+            // find active card
             const activeCard = this._cards
                 .filter(card => card.priority === curPriority)
                 .reduce((r, e) => (r && (r.lastSeenAt < e.lastSeenAt)) ? r : e, null);
@@ -71,35 +67,29 @@ class CardDeck {
         return this._cards.length;
     }
 
-    shuffleCards() {
-        // randomize lastSeenAt from cards.length numbers
-    }
-
     rankCard(id, priority) {
         const curCard = this._getCard(id);
         const resCard = {
             ...curCard,
             priority
         };
-        const priorities = Object.values(CardPriority);
-        if (priorities.indexOf(resCard.priority) < priorities.indexOf(curCard.priority)) {
-            resCard.lastSeenAt = 0;
-        }
         return requestService.update(resCard)
             .then(resp => {
                 curCard.priority = resp.priority;
                 curCard.lastSeenAt = resp.lastSeenAt;
+                this._sortCards();
             });
     }
 
     deleteCard(id) {
         return requestService.delete(id)
             .then(resp => {
-                this._cards.splice(this._cards.indexOf(this._cards.find(card => card.id === parseInt(resp.id, 10))), 1);
+                this._removeCard(resp.id);
             });
     }
 
     updateCard(card) {
+        // add new
         if (!card.id) {
             return requestService.add({
                 user: this._user.name,
@@ -109,10 +99,11 @@ class CardDeck {
                 lastSeenAt: Date.now()
             })
                 .then(resp => {
-                    this._cards.push(resp);
+                    this._addCard(resp);
                     return resp;
                 });
         }
+        // update
         const curCard = this._getCard(card.id);
         if (!curCard) {
             return Promise.reject('no card to update');
@@ -130,6 +121,33 @@ class CardDeck {
                 curCard.example = resp.example;
                 return curCard;
             });
+    }
+
+    _setUser(raw) {
+        this._user = raw;
+        console.log('card deck set user', this._user); // TODO remove dev code
+    }
+
+    _setCards(raw) {
+        this._cards = raw;
+        this._sortCards();
+        console.log('card deck set cards', this._cards); // TODO remove dev code
+    }
+
+    _sortCards() {
+        this._cards = this._cards.sort((a, b) => a.lastSeenAt - b.lastSeenAt);
+    }
+
+    _getCard(id) {
+        return this._cards.find(card => card.id === id);
+    }
+
+    _addCard(card) {
+        this._cards.unshift(card);
+    }
+
+    _removeCard(id) {
+        this._cards.splice(this._cards.indexOf(this._cards.find(card => card.id === parseInt(id, 10))), 1);
     }
 }
 
