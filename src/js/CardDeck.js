@@ -63,26 +63,14 @@ class CardDeck {
             console.log(`fresh ${this._cards.filter(e => e.priority === CardPriority.FRESH).length}, high ${this._cards.filter(e => e.priority === CardPriority.HIGH).length}, mid ${this._cards.filter(e => e.priority === CardPriority.MEDIUM).length}, low ${this._cards.filter(e => e.priority === CardPriority.LOW).length}`);// TODO remove dev code
 
             activeCard.lastSeenAt = Date.now();
+            this._sortCards();
+
             resolve(activeCard);
         });
     }
 
     getNumCards() {
         return this._cards.length;
-    }
-
-    rankCard(id, priority) {
-        const curCard = this._getCard(id);
-        const resCard = {
-            ...curCard,
-            priority
-        };
-        return requestService.update(resCard)
-            .then(resp => {
-                curCard.priority = resp.priority;
-                curCard.lastSeenAt = resp.lastSeenAt;
-                this._sortCards();
-            });
     }
 
     upsertCard(card) {
@@ -124,6 +112,20 @@ class CardDeck {
         return requestService.delete(id)
             .then(resp => {
                 this._removeCard(resp.id);
+            });
+    }
+
+    rankCard(id, priority) {
+        if (!Object.values(CardPriority).includes(priority)) {
+            return Promise.reject('no priority');
+        }
+        const curCard = this._getCard(id);
+        return requestService.update({
+            ...curCard,
+            priority
+        })
+            .then(resp => {
+                curCard.priority = resp.priority;
             });
     }
 
