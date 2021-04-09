@@ -36,28 +36,32 @@ class CardDeck {
 
     getActiveCard() {
         return new Promise((resolve, reject) => {
-            // new approach
-            const pr = this._cards.reduce((r, e, i) => [ ...r, `${Math.round(CardProbability[e.priority] * (this._cards.length - i) * Math.random())} ${e.lastSeenAt}` ], []);
-            console.log(pr);// TODO remove dev code
+            if (!this._cards.length) {
+                reject('no cards');
+                return;
+            }
 
-            // get priority
-            let prevChance = 0;
-            const curPriority = Object.keys(CardProbability).reduce((result, key) => {
-                const chance = Math.random() * CardProbability[key];
-                if (chance <= prevChance || !this._cards.find(card => card.priority === key)) {
+            const mostRecentCard = this._cards[this._cards.length - 1];
+            let threshold = 0;
+
+            const activeCardId = this._cards.reduce((result, card, index) => {
+                const curThreshold = Math.floor(CardProbability[card.priority] * (mostRecentCard.lastSeenAt - card.lastSeenAt) * Math.random());
+                if (curThreshold < threshold) {
                     return result;
                 }
-                prevChance = chance;
-                return key;
-            }, '');
-            // find active card
-            const activeCard = this._cards
-                .filter(card => card.priority === curPriority)
-                .reduce((r, e) => (r && (r.lastSeenAt < e.lastSeenAt)) ? r : e, null);
+                threshold = curThreshold;
+                return card.id;
+            }, 0);
+
+            const activeCard = this._getCard(activeCardId);
             if (!activeCard) {
                 reject('no active card');
                 return;
             }
+
+            console.log('active card', activeCard);// TODO remove dev code
+            console.log(`fresh ${this._cards.filter(e => e.priority === CardPriority.FRESH).length}, high ${this._cards.filter(e => e.priority === CardPriority.HIGH).length}, mid ${this._cards.filter(e => e.priority === CardPriority.MEDIUM).length}, low ${this._cards.filter(e => e.priority === CardPriority.LOW).length}`);// TODO remove dev code
+
             activeCard.lastSeenAt = Date.now();
             resolve(activeCard);
         });
@@ -81,15 +85,7 @@ class CardDeck {
             });
     }
 
-    deleteCard(id) {
-        return requestService.delete(id)
-            .then(resp => {
-                this._removeCard(resp.id);
-            });
-    }
-
-    updateCard(card) {
-        // add new
+    upsertCard(card) {
         if (!card.id) {
             return requestService.add({
                 user: this._user.name,
@@ -103,11 +99,12 @@ class CardDeck {
                     return resp;
                 });
         }
-        // update
+
         const curCard = this._getCard(card.id);
         if (!curCard) {
             return Promise.reject('no card to update');
         }
+
         return requestService.update({
             ...curCard,
             translations: {
@@ -120,6 +117,13 @@ class CardDeck {
                 curCard.translations = resp.translations;
                 curCard.example = resp.example;
                 return curCard;
+            });
+    }
+
+    deleteCard(id) {
+        return requestService.delete(id)
+            .then(resp => {
+                this._removeCard(resp.id);
             });
     }
 

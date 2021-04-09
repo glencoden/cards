@@ -300,7 +300,7 @@ function App() {
                         variant="contained"
                         color="primary"
                         onClick={() => {
-                            cardDeck.updateCard(cardForEdit)
+                            cardDeck.upsertCard(cardForEdit)
                                 .then(card => {
                                     dispatch({ card, cardTurned: false, type: ActionTypes.SET_CARD })
                                     setCardForEdit(null);
@@ -315,7 +315,7 @@ function App() {
         );
     }
 
-    console.log('app active card', state.card);// TODO remove dev code
+    console.log('app render');// TODO remove dev code
 
     return (
         <div className={classes.root}>
