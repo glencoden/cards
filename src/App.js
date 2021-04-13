@@ -3,12 +3,6 @@ import { cardDeck, CardPriority } from './js/CardDeck';
 import { makeStyles, Card, CardContent, CardActions, Typography, Button, IconButton, Fab, TextField } from '@material-ui/core';
 import { Autocomplete, SpeedDial, SpeedDialIcon, SpeedDialAction } from '@material-ui/lab';
 
-const top100Films = [
-    { title: 'The Shawshank Redemption', year: 1994 },
-    { title: 'The Godfather', year: 1972 },
-    { title: 'The Godfather: Part II', year: 1974 }
-];
-
 // adapter
 
 const ActionTypes = {
@@ -93,13 +87,15 @@ const useStyles = makeStyles(theme => ({
     },
     numCards: {
         position: 'fixed',
-        top: '28px',
-        left: '28px'
+        top: '16px',
+        left: '16px'
+    },
+    search: {
+        position: 'fixed',
+        top: '16px',
+        right: '16px'
     },
     searchInput: {
-        position: 'fixed',
-        top: '28px',
-        right: '28px',
         width: '240px'
     },
     showOrderSwitch: {
@@ -148,6 +144,7 @@ function App() {
     const [ state, dispatch ] = useReducer(reducer, initState);
 
     const [ loginInput, setLoginInput ] = useState('');
+    const [ showSearch, setShowSearch ] = useState(false);
     const [ searchInput, setSearchInput ] = useState('');
     const [ cardSeen, setCardSeen ] = useState(false);
     const [ showOrder, setShowOrder ] = useState(CardShowOrder.A_TO_B);
@@ -331,27 +328,46 @@ function App() {
 
     return (
         <div className={classes.root}>
-            <Typography className={classes.numCards} variant="caption" color="textSecondary">{`${cardDeck.getNumCardsSeen()}/${cardDeck.getNumCards()}`}</Typography>
-            <Autocomplete
-                className={classes.searchInput}
-                freeSolo
-                id="free-solo-2-demo"
-                disableClearable
-                inputValue={searchInput}
-                onInputChange={(event, value) => setSearchInput(value)}
-                onChange={(event, value) => {
-                    // reset input
-                    getActiveCard(cardDeck.getIdBySearchListEntry(value));
-                }}
-                options={cardDeck.getSearchList()}
-                renderInput={(params) => (
-                    <TextField
-                        {...params}
-                        label={<span className="material-icons">search</span>}
-                        variant="outlined"
+            <IconButton className={classes.numCards}>
+                <Typography variant="caption" color="textSecondary">{`${cardDeck.getNumCardsSeen()}/${cardDeck.getNumCards()}`}</Typography>
+            </IconButton>
+            <div className={classes.search}>
+                {!showSearch && (
+                    <IconButton onClick={() => setShowSearch(true)}>
+                        <span className="material-icons">search</span>
+                    </IconButton>
+                )}
+                {showSearch && (
+                    <Autocomplete
+                        className={classes.searchInput}
+                        freeSolo
+                        id="free-solo-2-demo"
+                        disableClearable
+                        inputValue={searchInput}
+                        onInputChange={(event, value) => setSearchInput(value)}
+                        onChange={(event, value) => {
+                            const searchResultId = cardDeck.getIdBySearchItem(value);
+                            if (!searchResultId) {
+                                return;
+                            }
+                            getActiveCard(searchResultId);
+                        }}
+                        onBlur={() => {
+                            setSearchInput('');
+                            setShowSearch(false);
+                        }}
+                        options={cardDeck.getSearchItems()}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Suche"
+                                variant="outlined"
+                                autoFocus
+                            />
+                        )}
                     />
                 )}
-            />
+            </div>
 
             <Card
                 className={classes.card}

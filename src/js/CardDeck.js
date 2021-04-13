@@ -83,12 +83,16 @@ class CardDeck {
         return this._numCardsSeen;
     }
 
-    getSearchList() {
+    getSearchItems() {
         return this._cards.map(card => Object.values(card.translations.from)[0]);
     }
 
-    getIdBySearchListEntry(searchListEntry) {
-        const card = this._cards.find(card => Object.values(card.translations.from)[0] === searchListEntry);
+    getIdBySearchItem(searchItem) {
+        const card = this._cards.find(card => Object.values(card.translations.from)[0] === searchItem);
+        if (!card) {
+            console.warn('no card for search item', searchItem);
+            return;
+        }
         return card.id;
     }
 
