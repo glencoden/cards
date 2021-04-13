@@ -1,8 +1,13 @@
 import { useReducer, useState, useCallback } from 'react';
 import { cardDeck, CardPriority } from './js/CardDeck';
 import { makeStyles, Card, CardContent, CardActions, Typography, Button, IconButton, Fab, TextField } from '@material-ui/core';
-import { SpeedDial, SpeedDialIcon, SpeedDialAction } from '@material-ui/lab';
+import { Autocomplete, SpeedDial, SpeedDialIcon, SpeedDialAction } from '@material-ui/lab';
 
+const top100Films = [
+    { title: 'The Shawshank Redemption', year: 1994 },
+    { title: 'The Godfather', year: 1972 },
+    { title: 'The Godfather: Part II', year: 1974 }
+];
 
 // adapter
 
@@ -90,6 +95,12 @@ const useStyles = makeStyles(theme => ({
         position: 'fixed',
         top: '28px',
         left: '28px'
+    },
+    searchInput: {
+        position: 'fixed',
+        top: '28px',
+        right: '28px',
+        width: '240px'
     },
     showOrderSwitch: {
         alignSelf: 'center',
@@ -320,6 +331,34 @@ function App() {
     return (
         <div className={classes.root}>
             <Typography className={classes.numCards} variant="caption" color="textSecondary">{`${cardDeck.getNumCardsSeen()}/${cardDeck.getNumCards()}`}</Typography>
+            <Autocomplete
+                className={classes.searchInput}
+                freeSolo
+                id="free-solo-2-demo"
+                disableClearable
+                onInputChange={input => {
+                    const value = input.target.innerHTML;
+                    if (!value) {
+                        return;
+                    }
+                    const id = cardDeck.getIdBySearchListEntry(value);
+                    console.log();
+                    cardDeck.getActiveCard(id)
+                        .then(card => dispatch({ card, cardTurned: false, type: ActionTypes.SET_CARD }))
+                        .catch(err => {
+                            console.log(err);
+                            dispatch({ card: null, type: ActionTypes.SET_CARD })
+                        });
+                }}
+                options={cardDeck.getSearchList()}
+                renderInput={(params) => (
+                    <TextField
+                        {...params}
+                        label={<span className="material-icons">search</span>}
+                        variant="outlined"
+                    />
+                )}
+            />
 
             <Card
                 className={classes.card}

@@ -35,24 +35,28 @@ class CardDeck {
             });
     }
 
-    getActiveCard() {
+    getActiveCard(id) {
         return new Promise((resolve, reject) => {
             if (!this._cards.length) {
                 reject('no cards');
                 return;
             }
 
-            const mostRecentCard = this._cards[this._cards.length - 1];
-            let threshold = 0;
+            let activeCardId = id;
 
-            const activeCardId = this._cards.reduce((result, card, index) => {
-                const curThreshold = Math.floor(CardProbability[card.priority] * (mostRecentCard.lastSeenAt - card.lastSeenAt) * Math.random());
-                if (curThreshold < threshold) {
-                    return result;
-                }
-                threshold = curThreshold;
-                return card.id;
-            }, 0);
+            if (!activeCardId) {
+                const mostRecentCard = this._cards[this._cards.length - 1];
+                let threshold = 0;
+
+                activeCardId = this._cards.reduce((result, card, index) => {
+                    const curThreshold = Math.floor(CardProbability[card.priority] * (mostRecentCard.lastSeenAt - card.lastSeenAt) * Math.random());
+                    if (curThreshold < threshold) {
+                        return result;
+                    }
+                    threshold = curThreshold;
+                    return card.id;
+                }, 0);
+            }
 
             const activeCard = this._getCard(activeCardId);
             if (!activeCard) {
@@ -77,6 +81,15 @@ class CardDeck {
 
     getNumCardsSeen() {
         return this._numCardsSeen;
+    }
+
+    getSearchList() {
+        return this._cards.map(card => Object.values(card.translations.from)[0]);
+    }
+
+    getIdBySearchListEntry(searchListEntry) {
+        const card = this._cards.find(card => Object.values(card.translations.from)[0] === searchListEntry);
+        return card.id;
     }
 
     upsertCard(card) {
