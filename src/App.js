@@ -148,6 +148,7 @@ function App() {
     const [ state, dispatch ] = useReducer(reducer, initState);
 
     const [ loginInput, setLoginInput ] = useState('');
+    const [ searchInput, setSearchInput ] = useState('');
     const [ cardSeen, setCardSeen ] = useState(false);
     const [ showOrder, setShowOrder ] = useState(CardShowOrder.A_TO_B);
     const [ speedDialOpen, setSpeedDialOpen ] = useState(false);
@@ -155,7 +156,7 @@ function App() {
     const [ cardForEdit, setCardForEdit ] = useState(null);
 
     const getActiveCard = useCallback(
-        () => {
+        id => {
             setCardSeen(false);
             let cardTurned = false;
             if (showOrder === CardShowOrder.B_TO_A) {
@@ -163,7 +164,7 @@ function App() {
             } else if (showOrder === CardShowOrder.RANDOM) {
                 cardTurned = Math.random() < 0.5;
             }
-            cardDeck.getActiveCard()
+            cardDeck.getActiveCard(id)
                 .then(card => dispatch({ card, cardTurned, type: ActionTypes.SET_CARD }))
                 .catch(err => {
                     console.log(err);
@@ -336,19 +337,11 @@ function App() {
                 freeSolo
                 id="free-solo-2-demo"
                 disableClearable
-                onInputChange={input => {
-                    const value = input.target.innerHTML;
-                    if (!value) {
-                        return;
-                    }
-                    const id = cardDeck.getIdBySearchListEntry(value);
-                    console.log();
-                    cardDeck.getActiveCard(id)
-                        .then(card => dispatch({ card, cardTurned: false, type: ActionTypes.SET_CARD }))
-                        .catch(err => {
-                            console.log(err);
-                            dispatch({ card: null, type: ActionTypes.SET_CARD })
-                        });
+                inputValue={searchInput}
+                onInputChange={(event, value) => setSearchInput(value)}
+                onChange={(event, value) => {
+                    // reset input
+                    getActiveCard(cardDeck.getIdBySearchListEntry(value));
                 }}
                 options={cardDeck.getSearchList()}
                 renderInput={(params) => (
