@@ -18,6 +18,7 @@ const CardProbability = {
 class CardDeck {
     _user = {};
     _cards = [];
+    _numCardsSeen = 0;
 
     init(username) {
         return requestService.getUser(username)
@@ -64,6 +65,7 @@ class CardDeck {
 
             activeCard.lastSeenAt = Date.now();
             this._sortCards();
+            this._numCardsSeen++;
 
             resolve(activeCard);
         });
@@ -71,6 +73,10 @@ class CardDeck {
 
     getNumCards() {
         return this._cards.length;
+    }
+
+    getNumCardsSeen() {
+        return this._numCardsSeen;
     }
 
     upsertCard(card) {

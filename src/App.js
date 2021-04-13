@@ -319,7 +319,7 @@ function App() {
 
     return (
         <div className={classes.root}>
-            <Typography className={classes.numCards} variant="caption" color="textSecondary">{`${cardDeck.getNumCards()} cards`}</Typography>
+            <Typography className={classes.numCards} variant="caption" color="textSecondary">{`${cardDeck.getNumCardsSeen()}/${cardDeck.getNumCards()}`}</Typography>
 
             <Card
                 className={classes.card}
