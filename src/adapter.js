@@ -26,37 +26,36 @@ import { createSlice } from '@reduxjs/toolkit';
 //     }
 // };
 
+const CardShowOrder = {
+    A_TO_B: 'a-to-b',
+    B_TO_A: 'b-to-a',
+    RANDOM: 'random'
+};
+
 
 export const adapter = createSlice({
     name: 'app',
     initialState: {
-        initialViewComplete: false,
-        vw: window.innerWidth,
-        vh: window.innerHeight,
-        cw: window.innerWidth,
-        ch: window.innerHeight,
-        language: navigator.language.slice(0, 2)
+        user: null,
+        card: null
     },
     reducers: {
-        resize: (state, action) => {
-            const { width, height } = action.payload;
-            state.initialViewComplete = true;
-            state.vw = width;
-            state.vh = height;
+        logout: state => {
+            state.user = null;
         }
     }
 });
 
-export const { resize } = adapter.actions;
+export const { logout } = adapter.actions;
 
-export const viewportSize = state => ({
-    vw: state.harbor.vw,
-    vh: state.harbor.vh
-});
-
-export const contentSize = state => ({
-    cw: state.harbor.cw,
-    ch: state.harbor.ch
-});
+// export const viewportSize = state => ({
+//     vw: state.harbor.vw,
+//     vh: state.harbor.vh
+// });
+//
+// export const contentSize = state => ({
+//     cw: state.harbor.cw,
+//     ch: state.harbor.ch
+// });
 
 export default adapter.reducer;
