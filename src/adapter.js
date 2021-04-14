@@ -29,8 +29,8 @@ export const login = createAsyncThunk(
 
 export const getActiveCard = createAsyncThunk(
     'getActiveCard',
-    async () => {
-        return await cardDeck.getActiveCard();
+    async id => {
+        return await cardDeck.getActiveCard(id);
     }
 );
 
@@ -47,7 +47,7 @@ export const CardSide = {
     B: 'b'
 };
 
-const CardShowOrder = {
+export const CardShowOrder = {
     A_TO_B: 'a-to-b',
     B_TO_A: 'b-to-a',
     RANDOM: 'random'
@@ -59,12 +59,17 @@ export const adapter = createSlice({
     initialState: {
         user: null,
         activeCard: null,
+        editCard: null,
         showSide: CardSide.A,
         showOrder: CardShowOrder.A_TO_B,
         hasBeenTurned: false,
         stageDeleteId: 0
     },
     reducers: {
+        incrementShowOrder: state => {
+            const values = Object.values(CardShowOrder);
+            state.showOrder = values[(values.indexOf(state.showOrder) + 1) % 3];
+        },
         turnCard: state => {
             switch (state.showSide) {
                 case CardSide.A:
@@ -78,6 +83,10 @@ export const adapter = createSlice({
             state.hasBeenTurned = true;
         },
         setStageDeleteId: (state, action) => {
+            if (!action.payload) {
+                state.stageDeleteId = state.activeCard?.id;
+                return;
+            }
             state.stageDeleteId = action.payload;
         }
     },
@@ -112,7 +121,7 @@ export const adapter = createSlice({
     }
 });
 
-export const { turnCard, setStageDeleteId } = adapter.actions;
+export const { incrementShowOrder, turnCard, setStageDeleteId } = adapter.actions;
 
 // export const viewportSize = state => ({
 //     vw: state.harbor.vw,

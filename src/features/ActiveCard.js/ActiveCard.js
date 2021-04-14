@@ -2,8 +2,8 @@ import { useCallback, useEffect } from 'react';
 import { useStyles } from '../../styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { CardSide, getActiveCard, deleteCard, turnCard, setStageDeleteId } from '../../adapter';
-import { Button, CardActions, CardContent, Fab, Typography } from '@material-ui/core';
-import { CardPriority } from '../../js/CardDeck';
+import { Button, Card, CardActions, CardContent, Fab, Typography } from '@material-ui/core';
+import { CardPriority, cardDeck } from '../../js/CardDeck';
 
 
 function ActiveCard() {
@@ -16,7 +16,7 @@ function ActiveCard() {
     const stageDeleteId = useSelector(state => state.stageDeleteId);
 
     useEffect(() => {
-        if (activeCard) {
+        if (activeCard || cardDeck.getNumCards() === 0) {
             return;
         }
         dispatch(getActiveCard());
@@ -37,7 +37,7 @@ function ActiveCard() {
                     variant="contained"
                     onClick={event => {
                         event.stopPropagation();
-                        dispatch(setStageDeleteId(0))
+                        dispatch(setStageDeleteId(0));
                     }}
                 >
                     <span className="material-icons">clear</span>
@@ -67,7 +67,7 @@ function ActiveCard() {
     }
 
     return (
-        <ActiveCard
+        <Card
             className={classes.card}
             onClick={() => dispatch(turnCard())}
         >
@@ -100,7 +100,7 @@ function ActiveCard() {
                     </CardActions>
                 </CardContent>
             )}
-        </ActiveCard>
+        </Card>
     );
 }
 
