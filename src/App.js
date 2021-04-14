@@ -1,34 +1,15 @@
 import { useReducer, useState, useCallback } from 'react';
+import { Provider, useSelector } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import reducer from './adapter';
 import { cardDeck, CardPriority } from './js/CardDeck';
 import { makeStyles, Card, CardContent, CardActions, Typography, Button, IconButton, Fab, TextField } from '@material-ui/core';
 import { Autocomplete, SpeedDial, SpeedDialIcon, SpeedDialAction } from '@material-ui/lab';
 
-// adapter
 
-const ActionTypes = {
-    SET_USER: 'set-user',
-    SET_CARD: 'set-card',
-    TURN_CARD: 'turn-card'
-};
-
-const initState = {
-    user: null,
-    card: null,
-    cardTurned: false
-};
-
-const reducer = (state, action) => {
-    switch (action.type) {
-        case ActionTypes.SET_USER:
-            return { ...state, user: action.user };
-        case ActionTypes.SET_CARD:
-            return { ...state, card: action.card, cardTurned: action.cardTurned };
-        case ActionTypes.TURN_CARD:
-            return { ...state, cardTurned: !state.cardTurned };
-        default:
-            return { ...state };
-    }
-};
+function createStore() {
+    return configureStore({ reducer });
+}
 
 
 // ui
@@ -327,147 +308,149 @@ function App() {
     console.log('app render');// TODO remove dev code
 
     return (
-        <div className={classes.root}>
-            <IconButton className={classes.numCards}>
-                <Typography variant="caption" color="textSecondary">{`${cardDeck.getNumCardsSeen()}/${cardDeck.getNumCards()}`}</Typography>
-            </IconButton>
-            <div className={classes.search}>
-                {!showSearch && (
-                    <IconButton onClick={() => setShowSearch(true)}>
-                        <span className="material-icons">search</span>
-                    </IconButton>
-                )}
-                {showSearch && (
-                    <Autocomplete
-                        className={classes.searchInput}
-                        freeSolo
-                        id="free-solo-2-demo"
-                        disableClearable
-                        inputValue={searchInput}
-                        onInputChange={(event, value) => setSearchInput(value)}
-                        onChange={(event, value) => {
-                            const searchResultId = cardDeck.getIdBySearchItem(value);
-                            if (!searchResultId) {
-                                return;
-                            }
-                            getActiveCard(searchResultId);
-                        }}
-                        onBlur={() => {
-                            setSearchInput('');
-                            setShowSearch(false);
-                        }}
-                        options={cardDeck.getSearchItems()}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Suche"
-                                variant="outlined"
-                                autoFocus
-                            />
-                        )}
-                    />
-                )}
-            </div>
-
-            <Card
-                className={classes.card}
-                onClick={() => {
-                    dispatch({ type: ActionTypes.TURN_CARD });
-                    setCardSeen(true);
-                }}
-            >
-                {state.card && (
-                    <CardContent className={classes.cardContent}>
-                        {Object.values(state.cardTurned ? state.card.translations.to : state.card.translations.from).map((entry, index) => {
-                            if (!entry) {
-                                return null;
-                            }
-                            return (
-                                <Typography
-                                    key={index}
-                                    className={classes.translations}
-                                    variant="subtitle2"
-                                >
-                                    {entry}
-                                </Typography>
-                            );
-                        })}
-                        {state.cardTurned && state.card.example && (
-                            <Typography
-                                className={classes.example}
-                                variant="caption"
-                            >
-                                {state.card.example}
-                            </Typography>
-                        )}
-                        <CardActions className={classes.cardActions}>
-                            {cardActions}
-                        </CardActions>
-                    </CardContent>
-                )}
-            </Card>
-
-            <div className={classes.showOrderSwitch}>
-                <Typography variant="caption" color="textSecondary">{state.user?.from[0]}</Typography>
-                <IconButton
-                    onClick={() => setShowOrder(prevState => {
-                        const values = Object.values(CardShowOrder);
-                        return values[(values.indexOf(prevState) + 1) % 3]
-                    })}
-                >
-                    {showOrder === CardShowOrder.A_TO_B && <span className="material-icons">arrow_right_alt</span>}
-                    {showOrder === CardShowOrder.B_TO_A && <span className="material-icons" style={{ transform: 'rotate(180deg)' }}>arrow_right_alt</span>}
-                    {showOrder === CardShowOrder.RANDOM && <span className="material-icons">swap_horiz</span>}
+        <Provider store={createStore()}>
+            <div className={classes.root}>
+                <IconButton className={classes.numCards}>
+                    <Typography variant="caption" color="textSecondary">{`${cardDeck.getNumCardsSeen()}/${cardDeck.getNumCards()}`}</Typography>
                 </IconButton>
-                <Typography variant="caption" color="textSecondary">{state.user?.to[0]}</Typography>
-            </div>
+                <div className={classes.search}>
+                    {!showSearch && (
+                        <IconButton onClick={() => setShowSearch(true)}>
+                            <span className="material-icons">search</span>
+                        </IconButton>
+                    )}
+                    {showSearch && (
+                        <Autocomplete
+                            className={classes.searchInput}
+                            freeSolo
+                            id="free-solo-2-demo"
+                            disableClearable
+                            inputValue={searchInput}
+                            onInputChange={(event, value) => setSearchInput(value)}
+                            onChange={(event, value) => {
+                                const searchResultId = cardDeck.getIdBySearchItem(value);
+                                if (!searchResultId) {
+                                    return;
+                                }
+                                getActiveCard(searchResultId);
+                            }}
+                            onBlur={() => {
+                                setSearchInput('');
+                                setShowSearch(false);
+                            }}
+                            options={cardDeck.getSearchItems()}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Suche"
+                                    variant="outlined"
+                                    autoFocus
+                                />
+                            )}
+                        />
+                    )}
+                </div>
 
-            <SpeedDial
-                className={classes.speedDial}
-                ariaLabel="SpeedDial"
-                hidden={false}
-                icon={<SpeedDialIcon/>}
-                onClose={() => setSpeedDialOpen(false)}
-                onOpen={() => setSpeedDialOpen(true)}
-                open={speedDialOpen}
-                direction="up"
-            >
-                <SpeedDialAction
-                    icon={<span className="material-icons">add</span>}
-                    tooltipTitle="Neu"
+                <Card
+                    className={classes.card}
                     onClick={() => {
-                        setCardForEdit({
-                            translations: {
-                                from: state.user.from.reduce((r, e) => ({ ...r, [e]: '' }), {}),
-                                to: state.user.to.reduce((r, e) => ({ ...r, [e]: '' }), {})
-                            },
-                            example: ''
-                        });
-                        setSpeedDialOpen(false);
+                        dispatch({ type: ActionTypes.TURN_CARD });
+                        setCardSeen(true);
                     }}
-                />
-                <SpeedDialAction
-                    icon={<span className="material-icons">edit</span>}
-                    tooltipTitle="Bearbeiten"
-                    onClick={() => {
-                        if (state.card) {
-                            setCardForEdit(state.card);
-                        }
-                        setSpeedDialOpen(false);
-                    }}
-                />
-                <SpeedDialAction
-                    icon={<span className="material-icons">delete</span>}
-                    tooltipTitle="Löschen"
-                    onClick={() => {
-                        if (state.card) {
-                            setStageDelete(true);
-                        }
-                        setSpeedDialOpen(false);
-                    }}
-                />
-            </SpeedDial>
-        </div>
+                >
+                    {state.card && (
+                        <CardContent className={classes.cardContent}>
+                            {Object.values(state.cardTurned ? state.card.translations.to : state.card.translations.from).map((entry, index) => {
+                                if (!entry) {
+                                    return null;
+                                }
+                                return (
+                                    <Typography
+                                        key={index}
+                                        className={classes.translations}
+                                        variant="subtitle2"
+                                    >
+                                        {entry}
+                                    </Typography>
+                                );
+                            })}
+                            {state.cardTurned && state.card.example && (
+                                <Typography
+                                    className={classes.example}
+                                    variant="caption"
+                                >
+                                    {state.card.example}
+                                </Typography>
+                            )}
+                            <CardActions className={classes.cardActions}>
+                                {cardActions}
+                            </CardActions>
+                        </CardContent>
+                    )}
+                </Card>
+
+                <div className={classes.showOrderSwitch}>
+                    <Typography variant="caption" color="textSecondary">{state.user?.from[0]}</Typography>
+                    <IconButton
+                        onClick={() => setShowOrder(prevState => {
+                            const values = Object.values(CardShowOrder);
+                            return values[(values.indexOf(prevState) + 1) % 3]
+                        })}
+                    >
+                        {showOrder === CardShowOrder.A_TO_B && <span className="material-icons">arrow_right_alt</span>}
+                        {showOrder === CardShowOrder.B_TO_A && <span className="material-icons" style={{ transform: 'rotate(180deg)' }}>arrow_right_alt</span>}
+                        {showOrder === CardShowOrder.RANDOM && <span className="material-icons">swap_horiz</span>}
+                    </IconButton>
+                    <Typography variant="caption" color="textSecondary">{state.user?.to[0]}</Typography>
+                </div>
+
+                <SpeedDial
+                    className={classes.speedDial}
+                    ariaLabel="SpeedDial"
+                    hidden={false}
+                    icon={<SpeedDialIcon/>}
+                    onClose={() => setSpeedDialOpen(false)}
+                    onOpen={() => setSpeedDialOpen(true)}
+                    open={speedDialOpen}
+                    direction="up"
+                >
+                    <SpeedDialAction
+                        icon={<span className="material-icons">add</span>}
+                        tooltipTitle="Neu"
+                        onClick={() => {
+                            setCardForEdit({
+                                translations: {
+                                    from: state.user.from.reduce((r, e) => ({ ...r, [e]: '' }), {}),
+                                    to: state.user.to.reduce((r, e) => ({ ...r, [e]: '' }), {})
+                                },
+                                example: ''
+                            });
+                            setSpeedDialOpen(false);
+                        }}
+                    />
+                    <SpeedDialAction
+                        icon={<span className="material-icons">edit</span>}
+                        tooltipTitle="Bearbeiten"
+                        onClick={() => {
+                            if (state.card) {
+                                setCardForEdit(state.card);
+                            }
+                            setSpeedDialOpen(false);
+                        }}
+                    />
+                    <SpeedDialAction
+                        icon={<span className="material-icons">delete</span>}
+                        tooltipTitle="Löschen"
+                        onClick={() => {
+                            if (state.card) {
+                                setStageDelete(true);
+                            }
+                            setSpeedDialOpen(false);
+                        }}
+                    />
+                </SpeedDial>
+            </div>
+        </Provider>
     );
 }
 
