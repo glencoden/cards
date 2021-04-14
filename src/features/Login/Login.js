@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useStyles } from '../../styles';
-import { cardDeck } from '../../js/CardDeck';
+import { useDispatch } from 'react-redux';
+import { login } from '../../adapter';
 import { Button, TextField } from '@material-ui/core';
 
 
 function Login() {
     const classes = useStyles();
-    const [ loginInput, setLoginInput ] = useState('');
+    const dispatch = useDispatch();
+    const [ userInput, setUserInput ] = useState('');
+
     return (
         <div className={classes.root}>
             <div className={classes.login}>
@@ -14,19 +17,14 @@ function Login() {
                     id="username"
                     label="Name"
                     margin="normal"
-                    value={loginInput}
-                    onChange={event => setLoginInput(event.target.value)}
+                    value={userInput}
+                    onChange={event => setUserInput(event.target.value)}
                     fullWidth
                 />
                 <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => {
-                        cardDeck.init(loginInput)
-                            .then(user => dispatch({ type: ActionTypes.SET_USER, user }))
-                            .then(getActiveCard)
-                            .catch(err => console.log(err));
-                    }}
+                    onClick={() => dispatch(login(userInput))}
                 >
                     Fertig
                 </Button>

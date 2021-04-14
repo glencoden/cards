@@ -1,12 +1,6 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { cardDeck } from './js/CardDeck';
 
-
-// const ActionTypes = {
-//     SET_USER: 'set-user',
-//     SET_CARD: 'set-card',
-//     TURN_CARD: 'turn-card'
-// };
-//
 // const initState = {
 //     user: null,
 //     card: null,
@@ -26,6 +20,33 @@ import { createSlice } from '@reduxjs/toolkit';
 //     }
 // };
 
+export const login = createAsyncThunk(
+    'login',
+    async input => {
+        return await cardDeck.init(input);
+    }
+);
+
+export const getActiveCard = createAsyncThunk(
+    'getActiveCard',
+    async () => {
+        return await cardDeck.getActiveCard();
+    }
+);
+
+export const deleteCard = createAsyncThunk(
+    'deleteCard',
+    async id => {
+        return await cardDeck.deleteCard(id);
+    }
+);
+
+
+export const CardSide = {
+    A: 'a',
+    B: 'b'
+};
+
 const CardShowOrder = {
     A_TO_B: 'a-to-b',
     B_TO_A: 'b-to-a',
@@ -37,16 +58,61 @@ export const adapter = createSlice({
     name: 'app',
     initialState: {
         user: null,
-        card: null
+        activeCard: null,
+        showSide: CardSide.A,
+        showOrder: CardShowOrder.A_TO_B,
+        hasBeenTurned: false,
+        stageDeleteId: 0
     },
     reducers: {
-        logout: state => {
-            state.user = null;
+        turnCard: state => {
+            switch (state.showSide) {
+                case CardSide.A:
+                    state.showSide = CardSide.B;
+                    break;
+                case CardSide.B:
+                    state.showSide = CardSide.A;
+                    break;
+                default:
+            }
+            state.hasBeenTurned = true;
+        },
+        setStageDeleteId: (state, action) => {
+            state.stageDeleteId = action.payload;
+        }
+    },
+    extraReducers: {
+        [login.fulfilled]: (state, action) => {
+            if (action.error) {
+                console.log(action.error);
+                return;
+            }
+            state.user = action.payload;
+        },
+        [getActiveCard.fulfilled]: (state, action) => {
+            if (action.error) {
+                console.log(action.error);
+                return;
+            }
+            switch (state.showOrder) {
+                case CardShowOrder.A_TO_B:
+                    state.showSide = CardSide.A;
+                    break;
+                case CardShowOrder.B_TO_A:
+                    state.showSide = CardSide.B;
+                    break;
+                case CardShowOrder.RANDOM:
+                    state.showSide = Math.random() < 0.5 ? CardSide.A : CardSide.B;
+                    break;
+                default:
+            }
+            state.activeCard = action.payload;
+            state.hasBeenTurned = false;
         }
     }
 });
 
-export const { logout } = adapter.actions;
+export const { turnCard, setStageDeleteId } = adapter.actions;
 
 // export const viewportSize = state => ({
 //     vw: state.harbor.vw,

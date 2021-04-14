@@ -6,6 +6,7 @@ import { Card, CardContent, CardActions, Typography, Button, IconButton, Fab, Te
 import { Autocomplete, SpeedDial, SpeedDialIcon, SpeedDialAction } from '@material-ui/lab';
 
 import Login from './features/Login/Login';
+import ActiveCard from './features/ActiveCard.js/ActiveCard';
 
 
 
@@ -20,82 +21,9 @@ function App() {
 
     const [ showSearch, setShowSearch ] = useState(false);
     const [ searchInput, setSearchInput ] = useState('');
-    const [ cardSeen, setCardSeen ] = useState(false);
     const [ showOrder, setShowOrder ] = useState(CardShowOrder.A_TO_B);
     const [ speedDialOpen, setSpeedDialOpen ] = useState(false);
-    const [ stageDelete, setStageDelete ] = useState(false);
     const [ cardForEdit, setCardForEdit ] = useState(null);
-
-    const getActiveCard = useCallback(
-        id => {
-            setCardSeen(false);
-            let cardTurned = false;
-            if (showOrder === CardShowOrder.B_TO_A) {
-                cardTurned = true;
-            } else if (showOrder === CardShowOrder.RANDOM) {
-                cardTurned = Math.random() < 0.5;
-            }
-            cardDeck.getActiveCard(id)
-                .then(card => dispatch({ card, cardTurned, type: ActionTypes.SET_CARD }))
-                .catch(err => {
-                    console.log(err);
-                    dispatch({ card: null, type: ActionTypes.SET_CARD })
-                });
-        },
-        [ dispatch, showOrder ]
-    );
-
-    const rankCard = useCallback(
-        (event, id, priority) => {
-            event.stopPropagation();
-            cardDeck.rankCard(id, priority)
-                .then(getActiveCard);
-        },
-        [ getActiveCard ]
-    );
-
-    let cardActions = null;
-
-    if (stageDelete) {
-        cardActions = (
-            <>
-                <Button
-                    key="clear"
-                    variant="contained"
-                    onClick={event => {
-                        event.stopPropagation();
-                        setStageDelete(false);
-                    }}
-                >
-                    <span className="material-icons">clear</span>
-                </Button>
-                <Button
-                    key="delete"
-                    variant="contained"
-                    color="secondary"
-                    onClick={e => {
-                        e.stopPropagation();
-                        cardDeck.deleteCard(state.card.id)
-                            .then(() => {
-                                setStageDelete(false);
-                                getActiveCard();
-                            });
-                    }}
-                >
-                    <span className="material-icons">delete</span>
-                </Button>
-            </>
-        );
-    } else if (cardSeen) {
-        cardActions = (
-            <>
-                <Fab key="rb-fresh" className={`${classes.rankButton} ${classes.rbFresh}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.FRESH)} />
-                <Fab key="rb-high" className={`${classes.rankButton} ${classes.rbHigh}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.HIGH)} />
-                <Fab key="rb-medium" className={`${classes.rankButton} ${classes.rbMedium}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.MEDIUM)} />
-                <Fab key="rb-low" className={`${classes.rankButton} ${classes.rbLow}`} size="small" onClick={event => rankCard(event, state.card.id, CardPriority.LOW)} />
-            </>
-        );
-    }
 
     if (!state.user) {
         return Login;
@@ -218,43 +146,7 @@ function App() {
                 )}
             </div>
 
-            <Card
-                className={classes.card}
-                onClick={() => {
-                    dispatch({ type: ActionTypes.TURN_CARD });
-                    setCardSeen(true);
-                }}
-            >
-                {state.card && (
-                    <CardContent className={classes.cardContent}>
-                        {Object.values(state.cardTurned ? state.card.translations.to : state.card.translations.from).map((entry, index) => {
-                            if (!entry) {
-                                return null;
-                            }
-                            return (
-                                <Typography
-                                    key={index}
-                                    className={classes.translations}
-                                    variant="subtitle2"
-                                >
-                                    {entry}
-                                </Typography>
-                            );
-                        })}
-                        {state.cardTurned && state.card.example && (
-                            <Typography
-                                className={classes.example}
-                                variant="caption"
-                            >
-                                {state.card.example}
-                            </Typography>
-                        )}
-                        <CardActions className={classes.cardActions}>
-                            {cardActions}
-                        </CardActions>
-                    </CardContent>
-                )}
-            </Card>
+            <ActiveCard />
 
             <div className={classes.showOrderSwitch}>
                 <Typography variant="caption" color="textSecondary">{state.user?.from[0]}</Typography>

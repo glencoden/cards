@@ -1,5 +1,5 @@
-// const rootUrl = 'http://192.168.1.3:80';
-const rootUrl = 'https://wolke.glencoden.de';
+const rootUrl = 'http://192.168.1.3:80';
+// const rootUrl = 'https://wolke.glencoden.de';
 const baseUrl = `${rootUrl}/cards`;
 
 
