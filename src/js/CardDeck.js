@@ -8,9 +8,9 @@ export const CardPriority = {
 };
 
 const CardProbability = {
-    [CardPriority.FRESH]: 6,
+    [CardPriority.FRESH]: 10,
     [CardPriority.HIGH]: 4,
-    [CardPriority.MEDIUM]: 3,
+    [CardPriority.MEDIUM]: 2,
     [CardPriority.LOW]: 1
 };
 
@@ -65,7 +65,14 @@ class CardDeck {
             }
 
             console.log('active card', activeCard);// TODO remove dev code
-            console.log(`fresh ${this._cards.filter(e => e.priority === CardPriority.FRESH).length}, high ${this._cards.filter(e => e.priority === CardPriority.HIGH).length}, mid ${this._cards.filter(e => e.priority === CardPriority.MEDIUM).length}, low ${this._cards.filter(e => e.priority === CardPriority.LOW).length}`);// TODO remove dev code
+
+            activeCard.spec = {
+                cardPosition: this._cards.indexOf(activeCard),
+                priorityDistribution: Object.values(CardPriority).reduce((result, priority) => {
+                    result[priority] = this._cards.filter(card => card.priority === priority).length;
+                    return result;
+                }, {})
+            };
 
             activeCard.lastSeenAt = Date.now();
             this._sortCards();

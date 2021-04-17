@@ -87,8 +87,18 @@ const useStyles = makeStyles(theme => ({
     },
     numCards: {
         position: 'fixed',
-        top: '16px',
-        left: '16px'
+        top: '28px',
+        left: '28px'
+    },
+    cardSpec: {
+        position: 'fixed',
+        top: '54px',
+        left: '28px',
+        display: 'flex',
+        flexDirection: 'column'
+    },
+    cardSpecEntry: {
+        color: theme.palette.info.main
     },
     search: {
         position: 'fixed',
@@ -328,9 +338,17 @@ function App() {
 
     return (
         <div className={classes.root}>
-            <IconButton className={classes.numCards}>
-                <Typography variant="caption" color="textSecondary">{`${cardDeck.getNumCardsSeen()}/${cardDeck.getNumCards()}`}</Typography>
-            </IconButton>
+            <Typography className={classes.numCards} variant="caption" color="textSecondary">{`${cardDeck.getNumCardsSeen()}/${cardDeck.getNumCards()}`}</Typography>
+            {state.user.name === 'meyer' && state.card?.spec && (
+                <div className={classes.cardSpec}>
+                    <Typography className={classes.cardSpecEntry} variant="caption" color="textSecondary">
+                        {`${state.card.spec.cardPosition} ${state.card.priority}`}
+                    </Typography>
+                    <Typography className={classes.cardSpecEntry} variant="caption" color="textSecondary">
+                        {Object.keys(state.card.spec.priorityDistribution).reduce((r, key, i) => r + `${i ? ' ' : ''}${key.slice(0, 1).toUpperCase()}|${state.card.spec.priorityDistribution[key]}`, '')}
+                    </Typography>
+                </div>
+            )}
             <div className={classes.search}>
                 {!showSearch && (
                     <IconButton onClick={() => setShowSearch(true)}>
