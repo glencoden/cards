@@ -14,6 +14,20 @@ const CardProbability = {
     [CardPriority.LOW]: 1
 };
 
+function getCardId(cards) {
+    const mostRecentCard = cards[cards.length - 1];
+    let threshold = 0;
+
+    return cards.reduce((result, card) => {
+        const curThreshold = Math.floor(CardProbability[card.priority] * (mostRecentCard.lastSeenAt - card.lastSeenAt) * Math.random());
+        if (curThreshold < threshold) {
+            return result;
+        }
+        threshold = curThreshold;
+        return card.id;
+    }, 0);
+}
+
 
 class CardDeck {
     _user = {};
@@ -42,32 +56,24 @@ class CardDeck {
                 return;
             }
 
-            let activeCardId = id;
+            const activeCard = this._getCard(id || getCardId(this._cards));
 
-            if (!activeCardId) {
-                const mostRecentCard = this._cards[this._cards.length - 1];
-                let threshold = 0;
-
-                activeCardId = this._cards.reduce((result, card, index) => {
-                    const curThreshold = Math.floor(CardProbability[card.priority] * (mostRecentCard.lastSeenAt - card.lastSeenAt) * Math.random());
-                    if (curThreshold < threshold) {
-                        return result;
-                    }
-                    threshold = curThreshold;
-                    return card.id;
-                }, 0);
-            }
-
-            const activeCard = this._getCard(activeCardId);
             if (!activeCard) {
                 reject('no active card');
                 return;
             }
 
-            console.log('active card', activeCard);// TODO remove dev code
-
+            const age = Date.now() - activeCard.lastSeenAt;
+            const minute = 1000 * 60;
+            const hour = minute * 60;
+            const day = hour * 24;
+            const ageDays = Math.floor(age / day);
+            const ageHours = Math.floor((age % day) / hour);
+            const ageMinutes = Math.floor(((age % day) % hour) / minute);
             activeCard.spec = {
                 cardPosition: this._cards.indexOf(activeCard),
+                timeShowToRanking: `${5128 / 1000}s`,
+                timeSinceLastSeen: `${ageDays}d ${ageHours}h ${ageMinutes}m`,
                 priorityDistribution: Object.values(CardPriority).reduce((result, priority) => {
                     result[priority] = this._cards.filter(card => card.priority === priority).length;
                     return result;

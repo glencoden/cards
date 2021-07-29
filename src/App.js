@@ -92,10 +92,12 @@ const useStyles = makeStyles(theme => ({
     },
     cardSpec: {
         position: 'fixed',
-        top: '54px',
-        left: '28px',
+        bottom: '2px',
+        left: '0',
         display: 'flex',
-        flexDirection: 'column'
+        justifyContent: 'space-around',
+        width: '100%',
+        maxWidth: '600px'
     },
     cardSpecEntry: {
         color: theme.palette.info.main
@@ -345,7 +347,13 @@ function App() {
                         {`${state.card.spec.cardPosition} ${state.card.priority}`}
                     </Typography>
                     <Typography className={classes.cardSpecEntry} variant="caption" color="textSecondary">
-                        {Object.keys(state.card.spec.priorityDistribution).reduce((r, key, i) => r + `${i ? ' ' : ''}${key.slice(0, 1).toUpperCase()}|${state.card.spec.priorityDistribution[key]}`, '')}
+                        {`use ${state.card.spec.timeShowToRanking}`}
+                    </Typography>
+                    <Typography className={classes.cardSpecEntry} variant="caption" color="textSecondary">
+                        {`age ${state.card.spec.timeSinceLastSeen}`}
+                    </Typography>
+                    <Typography className={classes.cardSpecEntry} variant="caption" color="textSecondary">
+                        {`dist ${Object.keys(state.card.spec.priorityDistribution).reduce((r, key, i) => r + `${i ? ' ' : ''}${state.card.spec.priorityDistribution[key]}`, '')}`}
                     </Typography>
                 </div>
             )}
